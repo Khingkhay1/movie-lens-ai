@@ -1,5 +1,7 @@
 # MovieLens AI
 
+[![CI](https://github.com/Khingkhay1/movie-lens-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/Khingkhay1/movie-lens-ai/actions/workflows/ci.yml)
+
 **Identify movies and TV shows from video clips, explore title details, and keep track of identification history.**
 
 MovieLens AI is a full-stack web application built with React and Vite on the frontend, Node.js and Express on the backend, Supabase for authentication and user data, Gemini AI for video identification, and TMDB for movie and TV metadata.
