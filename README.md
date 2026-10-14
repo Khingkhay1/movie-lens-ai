@@ -9,7 +9,7 @@ MovieLens AI is a full-stack web application built with React and Vite on the fr
 ## Features
 
 - Upload a supported video clip for movie or TV identification.
-- Submit supported direct HTTPS video URLs for identification. Ordinary webpages and social-media post URLs are not supported as direct video sources.
+- Submit direct HTTPS video URLs and supported video-platform links for identification. A platform link may fail if the video is private, unavailable, blocked, or cannot be extracted.
 - Search for titles and view movie or TV details.
 - Use account, profile, saved-title, and identification-history features.
 - Connect a React frontend to an Express API, Gemini AI, TMDB, and Supabase.
@@ -125,7 +125,7 @@ cd server
 npm run dev
 ```
 
-The backend's current `npm test` script is a placeholder; it does **not** run an automated test suite yet. Automated tests and continuous-integration checks are planned improvements, so a successful build alone should not be interpreted as proof that every feature works.
+The backend includes automated unit tests for URL validation and link-input handling. These tests cover selected validation paths; they do not replace end-to-end testing of uploads, AI identification, authentication, or external integrations. A successful build alone should not be interpreted as proof that every feature works.
 
 ## Security notes
 
@@ -136,7 +136,7 @@ The backend's current `npm test` script is a placeholder; it does **not** run an
 
 ## Current limitations
 
-- Link identification is intended for supported direct HTTPS video URLs, not arbitrary webpages or social-media post links.
+- Link identification accepts direct HTTPS video URLs and attempts extraction from supported video-platform links. Arbitrary webpages, private videos, and unavailable or restricted videos may fail.
 - Identification quality and availability depend on the external AI service, video accessibility, and valid API credentials.
 - This repository does not currently document a public hosted demo.
 - The backend package currently has no automated test suite configured.
