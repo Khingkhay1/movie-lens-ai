@@ -132,7 +132,7 @@ async function identifyMovie(
     );
 
     return res.status(
-      error.statusCode || 500
+      error.statusCode || error.status || 500
     ).json({
       success: false,
       message:
@@ -280,7 +280,7 @@ async function identifyMovieFromLink(
       );
 
       return res.status(
-        error.statusCode || 400
+        error.statusCode || error.status || 400
       ).json({
         success: false,
         code:
