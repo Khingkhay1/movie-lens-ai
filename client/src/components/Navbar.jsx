@@ -1,6 +1,25 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { supabase } from "../supabaseClient";
 
 function Navbar() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (active) setUser(data?.user || null);
+    });
+    const { data: { subscription } } =
+      supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user || null);
+      });
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
   return (
     <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#0F1115]/80 px-6 py-5 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
@@ -42,18 +61,20 @@ function Navbar() {
             Search
           </Link>
 
-          <Link
-            to="/profile"
-            className="text-sm text-[#9298A5] transition hover:text-[#D6A85F]"
-          >
-            Profile
-          </Link>
+          {user && (
+            <Link
+              to="/profile"
+              className="text-sm text-[#9298A5] transition hover:text-[#D6A85F]"
+            >
+              Profile
+            </Link>
+          )}
 
           <Link
-            to="/login"
+            to={user ? "/profile" : "/login"}
             className="rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 text-sm font-medium text-[#F4F1EA] transition hover:border-[#D6A85F]/40 hover:bg-[#D6A85F]/10"
           >
-            Sign In
+            {user ? "My Account" : "Sign In"}
           </Link>
 
         </div>
