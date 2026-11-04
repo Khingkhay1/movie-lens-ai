@@ -144,29 +144,15 @@ function UploadSection({
     fileInputRef.current?.click();
   }
 
-  async function getAccessToken() {
+  async function getOptionalAccessToken() {
     const {
       data: authData,
       error: authError,
-    } =
-      await supabase.auth.getSession();
+    } = await supabase.auth.getSession();
 
-    if (authError) {
-      throw new Error(
-        "We could not verify your session. Please sign in again."
-      );
-    }
+    if (authError) return null;
 
-    const accessToken =
-      authData?.session?.access_token;
-
-    if (!accessToken) {
-      throw new Error(
-        "Please sign in before identifying a movie."
-      );
-    }
-
-    return accessToken;
+    return authData?.session?.access_token || null;
   }
 
   function startProcessingStatus() {
@@ -210,7 +196,7 @@ function UploadSection({
 
     try {
       const accessToken =
-        await getAccessToken();
+        await getOptionalAccessToken();
 
       const formData =
         new FormData();
@@ -225,10 +211,9 @@ function UploadSection({
           `${API_URL}/identify`,
           {
             method: "POST",
-            headers: {
-              Authorization:
-                `Bearer ${accessToken}`,
-            },
+            headers: accessToken
+              ? { Authorization: `Bearer ${accessToken}` }
+              : {},
             body: formData,
           }
         );
@@ -313,10 +298,10 @@ function UploadSection({
           {
             method: "POST",
             headers: {
-              "Content-Type":
-                "application/json",
-              Authorization:
-                `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+              ...(accessToken
+                ? { Authorization: `Bearer ${accessToken}` }
+                : {}),
             },
             body: JSON.stringify({
               url: trimmedUrl,
