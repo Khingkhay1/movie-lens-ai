@@ -96,14 +96,6 @@ async function identifyMovie(
         req
       );
 
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message:
-          "Your session is invalid or has expired. Please sign in again.",
-      });
-    }
-
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -114,7 +106,7 @@ async function identifyMovie(
 
     const result =
       await processIdentificationJob({
-        userId: user.id,
+        userId: user?.id || null,
         sourceType: "upload",
         sourcePlatform: "web",
         sourceUrl: null,
@@ -191,7 +183,7 @@ async function identifyMovieFromLink(
 
     console.log(
       "👤 User:",
-      user.id
+      user?.id || "Guest session"
     );
 
     console.log(
@@ -293,25 +285,27 @@ async function identifyMovieFromLink(
     }
 
     try {
-      const job =
-        await createIdentificationJob({
-          userId: user.id,
-          sourceType: "link",
-          sourcePlatform:
-            downloaded.sourcePlatform,
-          sourceUrl: url,
-        });
+      if (user) {
+        const job =
+          await createIdentificationJob({
+            userId: user.id,
+            sourceType: "link",
+            sourcePlatform:
+              downloaded.sourcePlatform,
+            sourceUrl: url,
+          });
 
-      jobId = job.id;
+        jobId = job.id;
 
-      console.log(
-        "🆔 Link identification job:",
-        jobId
-      );
+        console.log(
+          "🆔 Link identification job:",
+          jobId
+        );
+      }
 
       const result =
         await processIdentificationJob({
-          userId: user.id,
+          userId: user?.id || null,
           sourceType: "link",
           sourcePlatform:
             downloaded.sourcePlatform,
