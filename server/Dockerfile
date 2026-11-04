@@ -10,6 +10,7 @@ RUN apt-get update \
        curl \
        ca-certificates \
        python3 \
+       unzip \
     && curl -fsSL https://deno.land/install.sh | sh \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
