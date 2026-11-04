@@ -209,12 +209,6 @@ async function processIdentificationJob({
     null;
 
   try {
-    if (!userId) {
-      throw new Error(
-        "Authentication is required to identify a movie."
-      );
-    }
-
     if (!file || !file.path) {
       throw new Error(
         "No video was provided for identification."
@@ -235,7 +229,7 @@ async function processIdentificationJob({
 
     console.log(
       "👤 User:",
-      userId
+      userId || "Guest session"
     );
 
     console.log(
@@ -267,7 +261,7 @@ async function processIdentificationJob({
       file.path
     );
 
-    if (!identificationJobId) {
+    if (!identificationJobId && userId) {
       const job =
         await createIdentificationJob({
           userId,
@@ -276,23 +270,12 @@ async function processIdentificationJob({
           sourceUrl,
         });
 
-      identificationJobId =
-        job.id;
-
-      console.log(
-        "🆔 Identification job:",
-        identificationJobId
-      );
-    } else {
-      console.log(
-        "🆔 Existing identification job:",
-        identificationJobId
-      );
+      identificationJobId = job.id;
     }
 
-    await markJobProcessing(
-      identificationJobId
-    );
+    if (identificationJobId) {
+      await markJobProcessing(identificationJobId);
+    }
 
     let duration;
 
@@ -443,58 +426,29 @@ async function processIdentificationJob({
       } ms`
     );
 
-    console.log(
-      "💾 Saving identification history..."
-    );
+    if (userId) {
+      console.log("💾 Saving identification history...");
 
-    let history;
+      let history;
+      try {
+        history = await saveIdentificationHistory(userId, movie);
+      } catch (error) {
+        await updateJobAsFailed(identificationJobId, "HISTORY_SAVE_FAILED", error.message);
+        failureRecorded = true;
+        error.statusCode = 500;
+        throw error;
+      }
 
-    try {
-      history =
-        await saveIdentificationHistory(
-          userId,
-          movie
-        );
-    } catch (error) {
-      await updateJobAsFailed(
-        identificationJobId,
-        "HISTORY_SAVE_FAILED",
-        error.message
-      );
+      console.log("📚 History record:", history.id);
 
-      failureRecorded =
-        true;
-
-      error.statusCode =
-        500;
-
-      throw error;
-    }
-
-    console.log(
-      "📚 History record:",
-      history.id
-    );
-
-    try {
-      await completeIdentificationJob(
-        identificationJobId,
-        history.id
-      );
-    } catch (error) {
-      await updateJobAsFailed(
-        identificationJobId,
-        "JOB_COMPLETION_FAILED",
-        error.message
-      );
-
-      failureRecorded =
-        true;
-
-      error.statusCode =
-        500;
-
-      throw error;
+      try {
+        await completeIdentificationJob(identificationJobId, history.id);
+      } catch (error) {
+        await updateJobAsFailed(identificationJobId, "JOB_COMPLETION_FAILED", error.message);
+        failureRecorded = true;
+        error.statusCode = 500;
+        throw error;
+      }
     }
 
     console.log(
@@ -509,8 +463,7 @@ async function processIdentificationJob({
     );
 
     return {
-      jobId:
-        identificationJobId,
+      ...(identificationJobId ? { jobId: identificationJobId } : {}),
       ...movie,
     };
   } catch (error) {
